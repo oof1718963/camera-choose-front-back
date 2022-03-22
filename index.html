@@ -12,35 +12,72 @@
 
 <body>
 
-    <main>
-        <div class="controls">
-            <button id="button">Get camera</button>
-            <select id="select">
-                <option></option>
-            </select>
-        </div>
+    <main id="app">
 
-        <video id="video" autoplay playsinline></video>
+        <video id="video" autoplay playsinline style="border:2px solid red"></video>
 
-        <button id="button1">Button 1</button>
-        <button id="button2">Button 2</button>
+        <button id="button1" @click="button1">Button 1</button>
+        <button id="button2" @click="button2">Button 2</button>
+        <div v-html="log"></div>
     </main>
 
-    <footer>
-        <p>Built by
-            <a href="https://twitter.com/philnash">@philnash</a>
-        </p>
-    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 
     <script>
         const video = document.getElementById('video');
-        const button = document.getElementById('button');
 
         const button1 = document.getElementById('button1');
         const button2 = document.getElementById('button2');
-
-        const select = document.getElementById('select');
         let currentStream;
+
+        const vm = new Vue({
+            data: {
+                log: ''
+            },
+            el: '#app',
+            methods: {
+                button1() {
+
+                    if (typeof currentStream !== 'undefined') {
+                        stopMediaTracks(currentStream);
+                        this.log += 'Log 1:' + currentStream.toString() + '<br>';
+                    }
+
+                    const videoConstraints = {};
+
+                    if (true) {
+                        this.log += 'Log 2:TRUE <br>';
+                        videoConstraints.facingMode = 'environment';
+                    } else {
+                        videoConstraints.deviceId = {
+                            exact: select.value
+                        };
+                    }
+
+                    const constraints = {
+                        video: videoConstraints,
+                        audio: false
+                    };
+
+                    navigator.mediaDevices
+                        .getUserMedia(constraints)
+                        .then(stream => {
+                            currentStream = stream;
+                            video.srcObject = stream;
+                            return navigator.mediaDevices.enumerateDevices();
+                        })
+                        .then(gotDevices)
+                        .catch(error => {
+                            console.error(error);
+                        });
+                },
+
+                button2() {
+                    alert('b')
+                }
+            }
+        });
+
 
         function stopMediaTracks(stream) {
             stream.getTracks().forEach(track => {
@@ -49,51 +86,19 @@
         }
 
         function gotDevices(mediaDevices) {
-            select.innerHTML = '';
-
-            select.appendChild(document.createElement('option'));
 
             let count = 1;
 
             mediaDevices.forEach(mediaDevice => {
                 if (mediaDevice.kind === 'videoinput') {
-                    button1.value = mediaDevice.deviceId;
+                    console.log();
+                    vm.log = mediaDevice.deviceId + "<br>";
                     const label = mediaDevice.label || `Camera ${count++}`;
+                    button1.value = mediaDevice.deviceId + '' + label;
                 }
             });
         }
 
-        button.addEventListener('click', event => {
-
-            if (typeof currentStream !== 'undefined') {
-                stopMediaTracks(currentStream);
-            }
-
-            const videoConstraints = {};
-
-            if (select.value === '') {
-                videoConstraints.facingMode = 'environment';
-            } else {
-                videoConstraints.deviceId = {
-                    exact: select.value
-                };
-            }
-            const constraints = {
-                video: videoConstraints,
-                audio: false
-            };
-            navigator.mediaDevices
-                .getUserMedia(constraints)
-                .then(stream => {
-                    currentStream = stream;
-                    video.srcObject = stream;
-                    return navigator.mediaDevices.enumerateDevices();
-                })
-                .then(gotDevices)
-                .catch(error => {
-                    console.error(error);
-                });
-        });
 
         navigator.mediaDevices.enumerateDevices().then(gotDevices);
     </script>
