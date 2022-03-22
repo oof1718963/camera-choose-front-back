@@ -92,7 +92,7 @@
             mediaDevices.forEach(mediaDevice => {
                 if (mediaDevice.kind === 'videoinput') {
                     console.log();
-                    vm.log = mediaDevice.deviceId + "<br>";
+                    vm.log += mediaDevice.deviceId + "<br>";
                     const label = mediaDevice.label || `Camera ${count++}`;
                     button1.value = mediaDevice.deviceId + '' + label;
                 }
